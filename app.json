@@ -1,0 +1,22 @@
+{
+  "id": "A795372C-87FA-4769-8DF6-89091F467721",
+  "name": "Webservice Check",
+  "publisher": "Oseberg Solutions AS",
+  "brief": "",
+  "description": "",
+  "version": "1.0.0.0",
+  "privacyStatement": "",
+  "EULA": "",
+  "help": "",
+  "url": "",
+  "logo": "",
+  "capabilities": [],
+  "dependencies": [],
+  "screenshots": [],
+  "platform": "12.0.0.0",
+  "application": "12.0.0.0",
+  "idRange": {
+    "from": 50100,
+    "to": 50149
+  }
+}
