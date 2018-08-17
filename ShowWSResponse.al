@@ -59,7 +59,7 @@ table 50100 WSResponse
 page 50101 WSCall
 {
     PageType = Card;
-            
+    UsageCategory = Administration;            
     layout
     {
         area(content)
@@ -93,6 +93,7 @@ page 50101 WSCall
               Promoted = true;
               ApplicationArea = All;
               PromotedCategory = Process;
+              
               Caption = 'Get WS response';
               trigger OnAction()
               begin
