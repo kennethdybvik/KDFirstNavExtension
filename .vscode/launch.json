@@ -5,10 +5,10 @@
         {
             "type": "al",
             "request": "launch",
-            "name": "BCTestU",
-            "server": "http://BCTestU",
+            "name": "BusinessCentral",
+            "server": "http://BusinessCentral",
             "serverInstance": "NAV",
-            "authentication": "UserPassword",
+            "authentication": "Windows",
             "startupObjectId": 50101,
             "startupObjectType": "Page"
         }
