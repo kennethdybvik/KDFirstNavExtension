@@ -11,7 +11,7 @@ table 50100 WSResponse
             AutoIncrement = true;
             
         }
-        field(2;URL; Text[100])
+        field(2;URL; Text[250])
         {
             Description = 'URL for webservice called.';
             
@@ -77,6 +77,12 @@ page 50101 WSCall
                    ApplicationArea = All;
                    MultiLine = true;
                 }
+                usercontrol(gMap;GoogleMapCtrl) {
+                    trigger ControlReady();
+                begin
+                    MapIsReady := true;
+                end;
+                }
                 
             }
          
@@ -106,6 +112,7 @@ page 50101 WSCall
                        wsRes.Response.CreateInStream(resStream);
                        resText.Read(resStream);
                        resText.GetSubText(txtRes,1,resText.Length);
+                       ShowAddress(txtRes);
                     end;
                   end
                   else
@@ -119,14 +126,26 @@ page 50101 WSCall
     var
         txtURL : Text;
         txtRes : Text;
-        //wsMgt: Codeunit WServiceManagement;
+    
+        wsMgt: Codeunit WServiceManagement;
         wsRes : Record WSResponse;
         resText : BigText;
         resStream : InStream;
+        MapIsReady : Boolean;
 
-        local procedure CallWebservice(tURL: Text[150]); begin
-          //wsMgt.CallWebservice(tURL);
+        local procedure CallWebservice(tURL: Text[250]); begin
+          wsMgt.CallWebservice(tURL);
         end;
+        local procedure ShowAddress(addressTxt : Text[250]);
+        var
+          CustAddress: Text;
+        begin
+          if not MapIsReady then
+            exit;
+
+        CurrPage.gMap.ShowAddress(CustAddress);
+        end;
+        
 }
 
 page 50100 ShowWSResponse
@@ -164,12 +183,11 @@ page 50100 ShowWSResponse
         area(Processing)
         {
             action(test) {
-                Caption='Testing';
+                Caption='Webservice Card';
                 Promoted = true;
                 PromotedCategory = Process;
                 ApplicationArea = All;
                 trigger OnAction() begin
-                    //Message('testing');
                     Page.Run(50101);
                 end;
             }
@@ -177,9 +195,32 @@ page 50100 ShowWSResponse
     }
  
 }
+
+controladdin GoogleMapCtrl
+{
+    Scripts = 
+        'https://maps.googleapis.com/maps/api/js',
+        'scripts/googlemap.js';
+    StartupScript = 'scripts/onload.js';
+    
+    RequestedHeight = 300;
+    RequestedWidth = 300;
+    MinimumHeight = 250;
+    MinimumWidth = 250;
+    MaximumHeight = 500;
+    MaximumWidth = 500;
+    VerticalShrink = true;
+    HorizontalShrink = true;
+    VerticalStretch = true;
+    HorizontalStretch = true;
+
+    event ControlReady();
+    procedure ShowAddress(Address: Text);
+}
+
 codeunit 50101 WServiceManagement 
 {
-    procedure CallWebservice(txtURL: Text[150]);
+    procedure CallWebservice(txtURL: Text[250]);
     var
     wsResponse : Record WSResponse;
     xHttpClient: HttpClient;
@@ -188,6 +229,7 @@ codeunit 50101 WServiceManagement
     tmpBlob : Record TempBlob;
     basicAuth : Text;
     auth : Text;
+    
     responseText: Text;
     responseStream : OutStream;
     wsStream : InStream;
