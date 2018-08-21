@@ -77,14 +77,13 @@ page 50101 WSCall
                    ApplicationArea = All;
                    MultiLine = true;
                 }
-                usercontrol(gMap;GoogleMapCtrl) {
+            }
+            usercontrol(googleMap;GoogleMapCtrl) {
                     trigger ControlReady();
                 begin
                     MapIsReady := true;
                 end;
                 }
-                
-            }
          
         }
     }
@@ -143,7 +142,7 @@ page 50101 WSCall
           if not MapIsReady then
             exit;
 
-        CurrPage.gMap.ShowAddress(CustAddress);
+        CurrPage.googleMap.ShowAddress(addressTxt);
         end;
         
 }
@@ -198,10 +197,9 @@ page 50100 ShowWSResponse
 
 controladdin GoogleMapCtrl
 {
-    Scripts = 
-        'https://maps.googleapis.com/maps/api/js',
-        'scripts/googlemap.js';
-    StartupScript = 'scripts/onload.js';
+    Scripts = 'https://maps.googleapis.com/maps/api/js',
+              'scripts/googlemap.js';
+    StartupScript = 'scripts/start.js';
     
     RequestedHeight = 300;
     RequestedWidth = 300;
@@ -213,7 +211,6 @@ controladdin GoogleMapCtrl
     HorizontalShrink = true;
     VerticalStretch = true;
     HorizontalStretch = true;
-
     event ControlReady();
     procedure ShowAddress(Address: Text);
 }
