@@ -1,16 +1,15 @@
 {
     "version": "0.2.0",
     "configurations": [
-        
         {
             "type": "al",
             "request": "launch",
             "name": "BusinessCentral",
             "server": "http://BusinessCentral",
-            "serverInstance": "NAV",
+            "serverInstance": "nav",
             "authentication": "Windows",
-            "startupObjectId": 50101,
-            "startupObjectType": "Page"
+            "startupObjectType": "Page",
+            "startupObjectId": 30
         }
     ]
 }

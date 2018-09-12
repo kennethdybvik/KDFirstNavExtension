@@ -14,7 +14,9 @@
   "dependencies": [],
   "screenshots": [],
   "platform": "12.0.0.0",
+  "target": "Extension",
   "application": "12.0.0.0",
+  "showMyCode": true,
   "idRange": {
     "from": 50100,
     "to": 50149

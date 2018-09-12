@@ -1,8 +1,7 @@
 table 50100 WSResponse
 {
     Caption = 'WSResponse';
-    DataClassification = ToBeClassified;
-    
+        
     fields
     {
         field(1;ID; BigInteger)
@@ -13,10 +12,38 @@ table 50100 WSResponse
         }
         field(2;URL; Text[250])
         {
+            CaptionML=ENU='URL',NOR='URL';
             Description = 'URL for webservice called.';
             
         }
-        field(3;Response; Blob)
+        field(3;Username; Text[30])
+        {
+            CaptionML=ENU='Username',NOR='Brukernavn';
+            Description = 'Username to be able to access webservice (if neccessary).';
+            
+        }
+        field(4;Password; Text[30])
+        {
+            CaptionML=ENU='Password',NOR='Passord';
+            Description = 'Password to be able to access webservice (if neccessary).';
+            
+        }
+        field(5;Authentication;Option)
+        {
+            OptionCaptionML = ENU='Anonymous,Basic,Windows',NOR='Anonym,Basic,Windows';
+            OptionMembers = Anonymous,Basic,Windows;
+            Description = 'Authentication: Anonymous,Basic or Windows';
+            
+        }
+
+        field(6;Https;Boolean)
+        {
+            CaptionML = ENU='Https',NOR='Https';
+            Description = 'Use Https (or Http if not checked).';
+            
+        }
+
+        field(7;Response; Blob)
         {
             Description = 'The response after ws call.';
             
@@ -62,30 +89,37 @@ page 50101 WSCall
     UsageCategory = Administration;            
     layout
     {
+        
         area(content)
         {
             group(General)
             {
                 field(URL;txtURL)
                 {
-                   Caption = 'URL';
                    ApplicationArea = All;
                 }
-                field(Response;txtRes)
-                {
-                   Caption = 'Response';
-                   ApplicationArea = All;
-                   MultiLine = true;
+                field(Username;txtUsername) {
+                  ApplicationArea = All;
                 }
+                field(Password;txtPassword) {
+                    ApplicationArea = All;
+                }
+                field(Authentication;oAuthentication) {
+                    OptionCaptionML=ENU='Anonymous,Basic,Windows',NOR='Anonymous,Basic,Windows';
+                    ApplicationArea = All;
+                }
+                field(Https;bHttps) {
+                    ApplicationArea = All;
+                }
+               
             }
-            usercontrol(googleMap;GoogleMapCtrl) {
-                    trigger ControlReady();
-                begin
-                    MapIsReady := true;
-                end;
+                usercontrol(Response;RichText)
+                {
+                   ApplicationArea = All;
+                   
                 }
-         
         }
+
     }
     
     actions
@@ -103,7 +137,7 @@ page 50101 WSCall
               trigger OnAction()
               begin
                   if (StrLen(txtURL) > 0) then begin
-                    CallWebservice(txtURL);
+                    CallWebservice(txtURL,txtUsername,txtPassword,oAuthentication,bHttps);
                     wsRes.SetRange(URL,txtURL);
                     if wsRes.FindFirst() then
                     begin
@@ -111,11 +145,12 @@ page 50101 WSCall
                        wsRes.Response.CreateInStream(resStream);
                        resText.Read(resStream);
                        resText.GetSubText(txtRes,1,resText.Length);
-                       ShowAddress(txtRes);
+                       txtStyle := 'position:fixed;width=900px;height=900px;margin:0px;padding:0px;overflow-wrap:break-word;font-family:Verdana;font-size:9px;font-weight:normal';
+                       CurrPage.Response.addText(txtRes,txtStyle);
                     end;
                   end
                   else
-                    Message('You must enter a URL.');
+                    Message('You must enter a URL (and Username/Password if required).');
               end;
 
             }
@@ -124,25 +159,20 @@ page 50101 WSCall
     
     var
         txtURL : Text;
+        txtUsername : Text;
+        txtPassword : Text;
+        oAuthentication : Option;
+        bHttps : Boolean;
         txtRes : Text;
+        txtStyle : Text;
     
         wsMgt: Codeunit WServiceManagement;
         wsRes : Record WSResponse;
         resText : BigText;
         resStream : InStream;
-        MapIsReady : Boolean;
-
-        local procedure CallWebservice(tURL: Text[250]); begin
-          wsMgt.CallWebservice(tURL);
-        end;
-        local procedure ShowAddress(addressTxt : Text[250]);
-        var
-          CustAddress: Text;
-        begin
-          if not MapIsReady then
-            exit;
-
-        CurrPage.googleMap.ShowAddress(addressTxt);
+        
+        local procedure CallWebservice(tURL: Text[250];tUsername:Text;tPassword:Text;oAuthentication:Option;bHttps:Boolean); begin
+          wsMgt.CallWebservice(tURL,tUsername,tPassword,oAuthentication,bHttps);
         end;
         
 }
@@ -166,12 +196,6 @@ page 50100 ShowWSResponse
                 {
                     ApplicationArea = All;
                 }
-                field(Response; Response)
-                {
-                    ApplicationArea = All;
-                } 
-                
-
             }
         }
         
@@ -181,13 +205,13 @@ page 50100 ShowWSResponse
     {
         area(Processing)
         {
-            action(test) {
+            action(ShowCard) {
                 Caption='Webservice Card';
                 Promoted = true;
                 PromotedCategory = Process;
                 ApplicationArea = All;
                 trigger OnAction() begin
-                    Page.Run(50101);
+                    Page.Run(50101,Rec);
                 end;
             }
         }
@@ -195,55 +219,69 @@ page 50100 ShowWSResponse
  
 }
 
-controladdin GoogleMapCtrl
-{
-    Scripts = 'https://maps.googleapis.com/maps/api/js',
-              'scripts/googlemap.js';
-    StartupScript = 'scripts/start.js';
-    
-    RequestedHeight = 300;
-    RequestedWidth = 300;
-    MinimumHeight = 250;
-    MinimumWidth = 250;
-    MaximumHeight = 500;
-    MaximumWidth = 500;
-    VerticalShrink = true;
-    HorizontalShrink = true;
-    VerticalStretch = true;
-    HorizontalStretch = true;
-    event ControlReady();
-    procedure ShowAddress(Address: Text);
+controladdin RichText {
+  Scripts = 'scripts/richText.js';
+  StartupScript = 'scripts/richTextStart.js';
+  //StyleSheets = 'scripts/css/RichText.css';
+  
+  VerticalStretch = false;
+  HorizontalStretch = false;
+  VerticalShrink = false;
+  HorizontalShrink = false;
+
+  RequestedHeight = 800;
+  RequestedWidth = 875;
+      
+  procedure addText(txt: Text;style: Text)
 }
+
+
 
 codeunit 50101 WServiceManagement 
 {
-    procedure CallWebservice(txtURL: Text[250]);
+    procedure CallWebservice(URL: Text;Username:Text;Password:Text;Authentication:Integer;Https:Boolean);
     var
     wsResponse : Record WSResponse;
     xHttpClient: HttpClient;
     xResponseMsg: HttpResponseMessage;
-    xmlbuf : Record "XML Buffer";
     tmpBlob : Record TempBlob;
     basicAuth : Text;
     auth : Text;
-    
+    addRec : Boolean;
+    inText : Text;
+    int : Integer;
+
     responseText: Text;
     responseStream : OutStream;
     wsStream : InStream;
     begin
-        if (StrLen(txtURL) > 0) then begin
-            wsResponse.Init;
-            wsResponse.URL := txtURL;
+        addRec := False;
+        if (StrLen(URL) > 0) then begin
+            wsResponse.SetRange(URL,URL);
+            if Not wsResponse.FindFirst then
+              addRec := True;
+            if addRec then
+              wsResponse.Init;
+            wsResponse.URL := URL;
             wsResponse.Response.CreateOutStream(responseStream,TextEncoding::UTF8);
             xHttpClient.DefaultRequestHeaders.Add('User-Agent','Dynamics365');
-        
-            if (xHttpClient.Get(txtURL,xResponseMsg)) then begin
+            xHttpClient.Timeout(30000);
+            inText := '';
+            responseText := '';
+            if (xHttpClient.Get(URL,xResponseMsg)) then begin
               xResponseMsg.Content.ReadAs(wsStream);
-              wsStream.ReadText(responseText);
+              WHILE NOT (wsStream.EOS) DO BEGIN  
+                int := wsStream.READTEXT(inText,1000);  
+                responseText += inText;
+              END;  
+              //wsStream.ReadText(responseText);
               responseStream.Write(responseText);
-              wsResponse.Insert;
-              
-              //Page.Run(50100,wsResponse);
+              if addRec Then
+                wsResponse.Insert
+              else
+                wsResponse.Modify;  
+            end else begin
+              Message('not able to get response.');
             end;
         end;
     end;
